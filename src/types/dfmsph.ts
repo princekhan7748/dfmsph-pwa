@@ -6,7 +6,10 @@ export type NNInteractionType =
   | 'cdm3y6'
   | 'ddm3y1'
   | 'migdal'
-  | 'rmf_nl3';
+  | 'rmf_nl1'
+  | 'rmf_nl2'
+  | 'rmf_nl3'
+  | 'rmf_tm1';
 
 export interface NucleusConfig {
   name: string;

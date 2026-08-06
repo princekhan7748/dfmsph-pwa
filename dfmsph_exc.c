@@ -177,7 +177,9 @@ double FUN_VEX(double s)
 {
 	static double vex;
 	vex=0;if(fabs(s)<alittle)return(alittle);
-	else vex=Aex1*exp(-aex1*s)/aex1/s+Aex2*exp(-aex2*s)/aex2/s+Aex3*exp(-aex3*s)/aex3/s;
+	vex = (aex1 > 0.0 ? Aex1*exp(-aex1*s)/aex1/s : 0.0)
+	    + (aex2 > 0.0 ? Aex2*exp(-aex2*s)/aex2/s : 0.0)
+	    + (aex3 > 0.0 ? Aex3*exp(-aex3*s)/aex3/s : 0.0);
 	return(vex);
 }
 

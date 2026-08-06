@@ -25,7 +25,8 @@ import {
 function generateDensityFile(nuc: { Z: number; A: number; massMeV?: number; densityType: any; c: number; a: number; w: number }, filename: string) {
   const normFactor = getDensityNormFactor(nuc as any);
   let content = `==== Density file for Z=${nuc.Z} A=${nuc.A} ====\n`;
-  content += `${nuc.Z} ${nuc.A} 0.1\n`;
+  content += `Density Header Line 2\n`;
+  content += `${nuc.Z.toFixed(1)} ${nuc.A.toFixed(1)} 0.100\n`;
   content += `I     R        RHO-COUL      RHO-PROT      RHO-NEUT     RHO-MASS\n`;
 
   const dr = 0.1;
@@ -38,7 +39,7 @@ function generateDensityFile(nuc: { Z: number; A: number; massMeV?: number; dens
     const rho_c = rho_p;
     content += `${(i + 1).toString().padStart(5)}  ${r.toFixed(3).padStart(6)}   ${rho_c.toExponential(5).toUpperCase().padStart(12)}   ${rho_p.toExponential(5).toUpperCase().padStart(12)}   ${rho_n.toExponential(5).toUpperCase().padStart(12)}   ${rho.toExponential(5).toUpperCase().padStart(12)}\n`;
   }
-  content += `123456789\n`;
+  content += `123456789 123456789 0.00000E+00 0.00000E+00 0.00000E+00 0.00000E+00\n`;
   fs.writeFileSync(filename, content, 'utf-8');
 }
 
@@ -48,12 +49,15 @@ function generateInputDFMSPH22(input: CalculationInput): string {
   
   let key_vN = 0;
   let key_D = 0;
-  if (nnType === 'm3y_reid') key_vN = 0;
-  else if (nnType === 'm3y_paris') key_vN = 1;
-  else if (nnType === 'migdal') key_vN = 2;
+  if (nnType === 'm3y_reid') { key_vN = 0; key_D = 0; }
+  else if (nnType === 'm3y_paris') { key_vN = 1; key_D = 0; }
+  else if (nnType === 'migdal') { key_vN = 2; key_D = 0; }
   else if (nnType === 'cdm3y6') { key_vN = 0; key_D = 6; }
   else if (nnType === 'ddm3y1') { key_vN = 0; key_D = 1; }
-  else if (nnType === 'rmf_nl3') key_vN = 13;
+  else if (nnType === 'rmf_nl1') { key_vN = 11; key_D = 0; }
+  else if (nnType === 'rmf_nl2') { key_vN = 12; key_D = 0; }
+  else if (nnType === 'rmf_nl3') { key_vN = 13; key_D = 0; }
+  else if (nnType === 'rmf_tm1') { key_vN = 14; key_D = 0; }
 
   const r00 = 1.2;
   const key_ex = 1;
@@ -83,22 +87,27 @@ function generateInputDFMSPH22(input: CalculationInput): string {
 
 function generateNNForcesFile(): string {
   return `Reid NN force parameters (Aex1 Aex2 Aex3 aex1 aex2 aex3)
+Reid header line 2
 6613.0 -1202.0 0.0 2.5 4.0 0.0
 A40Re A25Re AdelRe CElRe a40Re a25Re
 7999.0 -2134.0 -276.0 0.005 4.0 2.5
 Paris NN force parameters (Aex1 Aex2 Aex3 aex1 aex2 aex3)
+Paris header line 2
 1517.8 -484.2 0.0 1.6 2.5 0.0
 A40Pa A25Pa AdelPa CElPa a40Pa a25Pa
 11061.63 -2537.5 -262.0 0.005 4.0 2.5
 Migdal force parameters (Mig_fex Mig_fexprime Mig_fin Mig_finprime Mig_C_MF)
+Migdal header line 2
 1.0 1.0 1.0 1.0 378.0
 RMF parameters
+RMF header line 2
 0 783.0 763.0 492.25 11.666 4.961 10.138 -12.172 -36.265 0.0 -276.0
 1 783.0 763.0 504.89 11.493 5.500 9.111 -13.160 -1.610 0.0 -276.0
 2 782.5 763.0 508.19 12.868 4.474 10.217 -10.431 -28.885 0.0 -276.0
 3 783.0 763.0 526.06 12.601 4.470 10.444 -6.909 -15.834 0.0 -276.0
 4 783.0 763.0 511.11 12.614 4.632 10.029 -7.233 0.618 71.308 -276.0
 5 783.0 763.0 514.82 12.827 4.341 10.320 -8.150 -8.420 0.0 -276.0
+End of NN forces file
 `;
 }
 

@@ -73,13 +73,13 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ output }) => {
   const currentFilename = selectedFile === 'output' ? 'dfmsph22.out' : selectedFile;
 
   return (
-    <div className="bg-[#0c0c0e] border border-gray-800 rounded-xl p-5 shadow-2xl space-y-4">
+    <div className="bg-[#0c0c0e] border border-gray-800 rounded-xl p-3 sm:p-5 shadow-2xl space-y-4 w-full max-w-full min-w-0 overflow-hidden">
       
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gray-800 pb-3">
         <div>
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center space-x-2">
-            <Code2 className="w-4 h-4 text-cyan-400" />
+            <Code2 className="w-4 h-4 text-cyan-400 shrink-0" />
             <span>DFMSPH22 Original C Source Files & Data</span>
           </h3>
           <p className="text-[10px] text-gray-500 font-mono uppercase mt-0.5">
@@ -88,12 +88,12 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ output }) => {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => handleCopy(currentContent)}
             className="flex items-center space-x-1.5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider rounded bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 transition-colors"
           >
-            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-gray-400" />}
+            {copied ? <Check className="w-3 h-3 text-emerald-400 shrink-0" /> : <Copy className="w-3 h-3 text-gray-400 shrink-0" />}
             <span>{copied ? 'Copied' : 'Copy'}</span>
           </button>
 
@@ -101,7 +101,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ output }) => {
             onClick={() => handleDownload(currentFilename, currentContent)}
             className="flex items-center space-x-1.5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider rounded bg-cyan-600 hover:bg-cyan-500 text-[#09090b] font-bold transition-colors"
           >
-            <Download className="w-3 h-3" />
+            <Download className="w-3 h-3 shrink-0" />
             <span>Download {currentFilename}</span>
           </button>
         </div>
@@ -116,18 +116,18 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ output }) => {
               key={file.id}
               onClick={() => setSelectedFile(file.id)}
               title={file.desc}
-              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-[10px] font-mono tracking-wider transition-all ${
+              className={`flex items-center space-x-1.5 px-2 py-1 rounded text-[10px] font-mono tracking-wider transition-all shrink-0 ${
                 active
                   ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-800 font-bold shadow-sm'
                   : 'bg-gray-900/60 text-gray-400 hover:text-gray-200 hover:bg-gray-800 border border-gray-800/80'
               }`}
             >
               {file.id.endsWith('.h') ? (
-                <Folder className="w-3 h-3 text-amber-400" />
+                <Folder className="w-3 h-3 text-amber-400 shrink-0" />
               ) : file.id.endsWith('.out') ? (
-                <Terminal className="w-3 h-3 text-emerald-400" />
+                <Terminal className="w-3 h-3 text-emerald-400 shrink-0" />
               ) : (
-                <FileCode className="w-3 h-3 text-cyan-400" />
+                <FileCode className="w-3 h-3 text-cyan-400 shrink-0" />
               )}
               <span>{file.name}</span>
             </button>
@@ -137,26 +137,26 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ output }) => {
 
       {/* File Description Sub-header */}
       <div className="flex items-center justify-between text-[11px] font-mono text-gray-400 bg-gray-950 px-3 py-1.5 rounded border border-gray-900">
-        <span className="text-cyan-400 font-bold">{selectedFile}</span>
-        <span className="text-gray-500 text-[10px]">
+        <span className="text-cyan-400 font-bold truncate max-w-[150px] sm:max-w-none">{selectedFile}</span>
+        <span className="text-gray-500 text-[10px] truncate max-w-[150px] sm:max-w-none">
           {C_FILES.find((f) => f.id === selectedFile)?.desc}
         </span>
       </div>
 
       {/* Code Editor Box with Line Numbers */}
-      <div className="relative rounded-lg overflow-hidden bg-black border border-gray-800 font-mono text-xs text-gray-300 max-h-[500px] overflow-y-auto">
-        <pre className="p-4 leading-relaxed whitespace-pre font-mono text-cyan-300/90 selection:bg-cyan-950 selection:text-white">
+      <div className="relative rounded-lg bg-black border border-gray-800 font-mono text-xs text-gray-300 max-h-[500px] overflow-y-auto overflow-x-auto w-full max-w-full">
+        <pre className="p-4 leading-relaxed font-mono text-cyan-300/90 selection:bg-cyan-950 selection:text-white whitespace-pre sm:whitespace-pre text-[11px] sm:text-xs">
           <code>{currentContent}</code>
         </pre>
       </div>
 
       {/* CLI Compile Instructions */}
-      <div className="bg-black p-4 rounded-lg border border-gray-800 text-xs font-mono space-y-2">
+      <div className="bg-black p-4 rounded-lg border border-gray-800 text-xs font-mono space-y-2 overflow-x-auto w-full max-w-full">
         <div className="flex items-center space-x-2 font-bold text-cyan-400 uppercase tracking-widest text-[11px]">
-          <Terminal className="w-4 h-4" />
+          <Terminal className="w-4 h-4 shrink-0" />
           <span>Local C Compilation & Native Execution Guide</span>
         </div>
-        <div className="bg-gray-950 p-3 rounded border border-gray-800 font-mono text-[11px] text-emerald-400 leading-relaxed">
+        <div className="bg-gray-950 p-3 rounded border border-gray-800 font-mono text-[10px] sm:text-[11px] text-emerald-400 leading-relaxed overflow-x-auto">
           # Option A: Compile single consolidated file:<br />
           gcc -O3 -std=c99 dfmsph22.c -lm -o dfmsph22<br /><br />
           # Option B: Compile modular C source files:<br />
@@ -165,6 +165,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ output }) => {
           ./dfmsph22
         </div>
       </div>
+
 
     </div>
   );

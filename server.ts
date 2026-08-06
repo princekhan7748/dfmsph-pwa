@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import { execSync } from "child_process";
 import { createServer as createViteServer } from "vite";
 import { runDFMSPHCalculation, PRESET_REACTIONS } from "./src/physics/dfmsphEngine";
 import { executeNativeDFMSPH } from "./src/physics/nativeRunner";
@@ -23,6 +24,33 @@ async function startServer() {
     });
   });
 
+  /* Check C Compiler & Binary Engine Status */
+  app.get("/api/engine-status", (req, res) => {
+    try {
+      const cwd = process.cwd();
+      const binaryPath = path.join(cwd, "dfmsph22");
+      const binaryExists = fs.existsSync(binaryPath);
+      let gccAvailable = false;
+
+      if (!binaryExists) {
+        try {
+          execSync("gcc --version", { cwd, timeout: 2000 });
+          gccAvailable = true;
+        } catch (e) {
+          gccAvailable = false;
+        }
+      }
+
+      return res.json({
+        cEngineAvailable: binaryExists || gccAvailable,
+        binaryExists,
+        gccAvailable
+      });
+    } catch (e) {
+      return res.json({ cEngineAvailable: false, binaryExists: false, gccAvailable: false });
+    }
+  });
+
   /* Get Preset Reaction Systems */
   app.get("/api/presets", (req, res) => {
     res.json(PRESET_REACTIONS);
@@ -31,15 +59,30 @@ async function startServer() {
   /* Calculate Double Folding Interaction Potential */
   app.post("/api/calculate", async (req, res) => {
     try {
-      const input: CalculationInput = req.body;
-      if (!input || !input.proj || !input.targ) {
+      const { input, engine } = req.body;
+      const calcInput: CalculationInput = input || req.body;
+      
+      if (!calcInput || !calcInput.proj || !calcInput.targ) {
         return res.status(400).json({ error: "Invalid calculation input structure" });
       }
 
-      const { output, isNative, log } = await executeNativeDFMSPH(input);
+      // If user selected JS/TS engine
+      if (engine === 'ts' || engine === 'js') {
+        const tsResult = runDFMSPHCalculation(calcInput);
+        return res.json({
+          ...tsResult,
+          isNativeExecution: false,
+          cLogText: "[JS/TS Engine Active] Calculated using JavaScript/TypeScript simulation engine (dfmsphEngine.ts).",
+          executionLog: "[JS/TS Engine Active] Calculated using JavaScript/TypeScript simulation engine (dfmsphEngine.ts)."
+        });
+      }
+
+      // Otherwise (engine === 'c' or 'native' or default)
+      const { output, isNative, log } = await executeNativeDFMSPH(calcInput);
       return res.json({
         ...output,
         isNativeExecution: isNative,
+        cLogText: log,
         executionLog: log
       });
     } catch (err: any) {

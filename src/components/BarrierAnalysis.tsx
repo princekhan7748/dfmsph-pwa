@@ -106,11 +106,11 @@ export const BarrierAnalysis: React.FC<BarrierAnalysisProps> = ({ output }) => {
       </div>
 
       {/* Wong Formula Fusion Cross-Section Plot */}
-      <div className="bg-[#0c0c0e] border border-gray-800 rounded-xl p-5 shadow-2xl space-y-4">
+      <div className="bg-[#0c0c0e] border border-gray-800 rounded-xl p-3 sm:p-5 shadow-2xl space-y-4 w-full max-w-full min-w-0 overflow-hidden">
         <div className="flex items-center justify-between border-b border-gray-800 pb-3">
           <div>
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
               <span>Fusion Penetrability & Cross Section <span className="text-cyan-400 font-mono">σ_f(E)</span></span>
             </h3>
             <p className="text-[10px] text-gray-500 font-mono uppercase mt-0.5">
@@ -119,7 +119,7 @@ export const BarrierAnalysis: React.FC<BarrierAnalysisProps> = ({ output }) => {
           </div>
         </div>
 
-        <div className="h-[360px] w-full pt-1">
+        <div className="h-[280px] sm:h-[360px] w-full min-w-0 max-w-full overflow-hidden pt-1">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={fusionData} margin={{ top: 20, right: 30, left: 10, bottom: 25 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" opacity={0.8} />

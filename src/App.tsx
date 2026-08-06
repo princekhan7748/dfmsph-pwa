@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
+import { EngineSelectorBar } from './components/EngineSelectorBar';
 import { ReactionForm } from './components/ReactionForm';
 import { PotentialPlot } from './components/PotentialPlot';
 import { DensityPlot } from './components/DensityPlot';
@@ -19,28 +20,84 @@ export default function App() {
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
   const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
 
+  /* Engine Selection: 'ts' (Default JS/TS Engine) or 'c' (Native C Compiler Engine) */
+  const [selectedEngine, setSelectedEngine] = useState<'ts' | 'c'>('ts');
+  const [cEngineAvailable, setCEngineAvailable] = useState<boolean>(false);
+
+  /* Fetch C Engine Status on mount */
+  useEffect(() => {
+    fetch('/api/engine-status')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.cEngineAvailable) {
+          setCEngineAvailable(true);
+        }
+      })
+      .catch(() => {
+        setCEngineAvailable(false);
+      });
+  }, []);
+
   /* Run calculation ONLY when user clicks Execute / Compute button */
   const handleCalculate = async () => {
     setIsCalculating(true);
     try {
-      /* Try API call first, fallback to client-side TS engine */
-      const response = await fetch('/api/calculate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(input)
-      });
+      if (selectedEngine === 'ts') {
+        /* User explicitly selected JS/TS Math Engine */
+        try {
+          const response = await fetch('/api/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input, engine: 'ts' })
+          });
 
-      if (response.ok) {
-        const data = await response.json();
-        setOutput(data);
+          if (response.ok) {
+            const data = await response.json();
+            setOutput(data);
+          } else {
+            const localResult = runDFMSPHCalculation(input);
+            setOutput({
+              ...localResult,
+              isNativeExecution: false,
+              cLogText: '[JS/TS Engine Active] Calculated via client TypeScript simulation engine.'
+            });
+          }
+        } catch {
+          const localResult = runDFMSPHCalculation(input);
+          setOutput({
+            ...localResult,
+            isNativeExecution: false,
+            cLogText: '[JS/TS Engine Active] Calculated via client TypeScript simulation engine.'
+          });
+        }
       } else {
-        const localResult = runDFMSPHCalculation(input);
-        setOutput(localResult);
+        /* User explicitly selected Native C Compiler Engine ('c') */
+        const response = await fetch('/api/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input, engine: 'c' })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setOutput(data);
+        } else {
+          /* Fallback if C compilation/execution fails */
+          const localResult = runDFMSPHCalculation(input);
+          setOutput({
+            ...localResult,
+            isNativeExecution: false,
+            cLogText: '[C Execution Error] C Engine unavailable on server. Fallback to TypeScript simulation engine.'
+          });
+        }
       }
     } catch (err) {
-      /* Client-side fallback for offline PWA operation */
       const localResult = runDFMSPHCalculation(input);
-      setOutput(localResult);
+      setOutput({
+        ...localResult,
+        isNativeExecution: false,
+        cLogText: '[Fallback] Calculated using client TypeScript simulation engine.'
+      });
     } finally {
       setIsCalculating(false);
     }
@@ -51,7 +108,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-gray-200 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#09090b] text-gray-200 flex flex-col font-sans w-full max-w-full overflow-x-hidden">
       
       {/* Navigation Header */}
       <Navbar
@@ -63,8 +120,17 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full min-w-0 mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 overflow-x-hidden">
         
+        {/* Top Engine Choice & Status Bar */}
+        <EngineSelectorBar
+          selectedEngine={selectedEngine}
+          setSelectedEngine={setSelectedEngine}
+          cEngineAvailable={cEngineAvailable}
+          output={output}
+          isCalculating={isCalculating}
+        />
+
         {/* Tab 1: Calculator & Potential V(R) */}
         {activeTab === 'calculator' && (
           <div className="space-y-6">
@@ -75,6 +141,7 @@ export default function App() {
               isCalculating={isCalculating}
               presets={presets}
               onSelectPreset={handleSelectPreset}
+              selectedEngine={selectedEngine}
             />
             <PotentialPlot output={output} />
           </div>
@@ -90,6 +157,7 @@ export default function App() {
               isCalculating={isCalculating}
               presets={presets}
               onSelectPreset={handleSelectPreset}
+              selectedEngine={selectedEngine}
             />
             <DensityPlot output={output} />
           </div>

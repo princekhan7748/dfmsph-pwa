@@ -18,6 +18,7 @@ interface ReactionFormProps {
   isCalculating: boolean;
   presets: PresetReaction[];
   onSelectPreset: (preset: PresetReaction) => void;
+  selectedEngine?: 'ts' | 'c';
 }
 
 export const ReactionForm: React.FC<ReactionFormProps> = ({
@@ -26,7 +27,8 @@ export const ReactionForm: React.FC<ReactionFormProps> = ({
   onCalculate,
   isCalculating,
   presets,
-  onSelectPreset
+  onSelectPreset,
+  selectedEngine = 'ts'
 }) => {
 
   const handleProjChange = (field: string, value: any) => {
@@ -351,17 +353,21 @@ export const ReactionForm: React.FC<ReactionFormProps> = ({
         <button
           onClick={onCalculate}
           disabled={isCalculating}
-          className="w-full bg-cyan-600 hover:bg-cyan-500 text-[#09090b] font-bold text-xs py-3 rounded uppercase tracking-widest transition-all shadow-[0_0_12px_rgba(6,182,212,0.3)] flex items-center justify-center space-x-2 disabled:opacity-50"
+          className={`w-full font-bold text-xs py-3 rounded uppercase tracking-widest transition-all shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 ${
+            selectedEngine === 'c'
+              ? 'bg-cyan-500 hover:bg-cyan-400 text-[#09090b] shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+              : 'bg-emerald-500 hover:bg-emerald-400 text-[#09090b] shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+          }`}
         >
           {isCalculating ? (
             <>
               <div className="w-3.5 h-3.5 border-2 border-[#09090b]/30 border-t-[#09090b] rounded-full animate-spin" />
-              <span>Computing Potential Grid...</span>
+              <span>Computing Double Folding Potential ({selectedEngine === 'c' ? 'Native C Binary' : 'JS/TS Engine'})...</span>
             </>
           ) : (
             <>
               <Play className="w-3.5 h-3.5 fill-[#09090b]" />
-              <span>Compute Double Folding Potential</span>
+              <span>Compute Double Folding Potential ({selectedEngine === 'c' ? '⚡ Native C Compiler Engine' : '🟢 JS/TS Math Engine'})</span>
             </>
           )}
         </button>

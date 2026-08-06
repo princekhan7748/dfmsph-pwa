@@ -36,22 +36,29 @@ export const PotentialPlot: React.FC<PotentialPlotProps> = ({ output }) => {
   const { barrier, radialData, systemName, E_cm } = output;
 
   return (
-    <div className="bg-[#0c0c0e] border border-gray-800 rounded-xl p-5 shadow-2xl space-y-4">
+    <div className="bg-[#0c0c0e] border border-gray-800 rounded-xl p-3 sm:p-5 shadow-2xl space-y-4 w-full max-w-full min-w-0 overflow-hidden">
       
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gray-800 pb-3">
         <div>
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center space-x-2">
-            <LineChart className="w-4 h-4 text-cyan-400" />
+            <LineChart className="w-4 h-4 text-cyan-400 shrink-0" />
             <span>Nuclear Potential Curve <span className="text-cyan-400 font-mono">V(R)</span></span>
           </h3>
-          <p className="text-[10px] text-gray-500 font-mono uppercase mt-0.5">
-            System: {systemName} | E_c.m. = {E_cm} MeV
+          <p className="text-[10px] text-gray-500 font-mono uppercase mt-0.5 flex flex-wrap items-center gap-2">
+            <span>System: {systemName} | E_c.m. = {E_cm} MeV</span>
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider ${
+              output.isNativeExecution
+                ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
+                : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+            }`}>
+              {output.isNativeExecution ? '⚡ Computed via Native C Binary' : '🟢 Computed via JS/TS Math Engine'}
+            </span>
           </p>
         </div>
 
         {/* Visibility Toggles */}
-        <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] font-mono">
           <label className="flex items-center space-x-1 cursor-pointer">
             <input
               type="checkbox"
@@ -105,7 +112,7 @@ export const PotentialPlot: React.FC<PotentialPlotProps> = ({ output }) => {
       </div>
 
       {/* Chart */}
-      <div className="h-[400px] w-full pt-1">
+      <div className="h-[280px] sm:h-[400px] w-full min-w-0 max-w-full overflow-hidden pt-1">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={radialData} margin={{ top: 15, right: 30, left: 10, bottom: 25 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" opacity={0.8} />

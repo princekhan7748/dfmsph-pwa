@@ -73,6 +73,8 @@ export interface CalculationOutput {
   fusionData: FusionCrossSectionPoint[];
   cInputText: string;
   cOutputText: string;
+  cLogText?: string;
+  isNativeExecution?: boolean;
 }
 
 export interface PresetReaction {

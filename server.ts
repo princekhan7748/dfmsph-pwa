@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { runDFMSPHCalculation, PRESET_REACTIONS } from "./src/physics/dfmsphEngine";
+import { executeNativeDFMSPH } from "./src/physics/nativeRunner";
 import { CalculationInput } from "./src/types/dfmsph";
 
 async function startServer() {
@@ -28,15 +29,19 @@ async function startServer() {
   });
 
   /* Calculate Double Folding Interaction Potential */
-  app.post("/api/calculate", (req, res) => {
+  app.post("/api/calculate", async (req, res) => {
     try {
       const input: CalculationInput = req.body;
       if (!input || !input.proj || !input.targ) {
         return res.status(400).json({ error: "Invalid calculation input structure" });
       }
 
-      const result = runDFMSPHCalculation(input);
-      return res.json(result);
+      const { output, isNative, log } = await executeNativeDFMSPH(input);
+      return res.json({
+        ...output,
+        isNativeExecution: isNative,
+        executionLog: log
+      });
     } catch (err: any) {
       console.error("Calculation Error:", err);
       return res.status(500).json({ error: err.message || "Failed to execute DFMSPH22 calculation" });
@@ -64,10 +69,10 @@ async function startServer() {
   });
 
   /* Export formatted calculation data */
-  app.post("/api/export", (req, res) => {
+  app.post("/api/export", async (req, res) => {
     try {
       const { format, input } = req.body;
-      const result = runDFMSPHCalculation(input);
+      const { output: result } = await executeNativeDFMSPH(input);
 
       if (format === "csv") {
         res.setHeader("Content-Type", "text/csv");

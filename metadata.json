@@ -1,0 +1,6 @@
+{
+  "name": "DFMSPH22 - Double Folding Potential Calculator",
+  "description": "Web-based PWA application for DFMSPH22: C program for computing double-folding nucleus-nucleus interaction potentials, Coulomb barriers, density distributions, and analytical fitting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

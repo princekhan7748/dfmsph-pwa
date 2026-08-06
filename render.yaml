@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: dfmsph22-pwa
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000

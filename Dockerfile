@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm ci || npm install
 
 # Copy full application codebase
 COPY . .
@@ -38,8 +38,8 @@ COPY --from=builder /app/dfmsph22.c ./dfmsph22.c
 
 # Set environment
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=10000
 
-EXPOSE 3000
+EXPOSE 10000
 
 CMD ["npm", "start"]

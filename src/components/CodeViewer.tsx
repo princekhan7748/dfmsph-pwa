@@ -20,6 +20,7 @@ const C_FILES = [
   { id: 'inp_rhoP.c', name: 'inp_rhoP.c', desc: 'Projectile Point Nuclear Density Table' },
   { id: 'inp_rhoT.c', name: 'inp_rhoT.c', desc: 'Target Point Nuclear Density Table' },
   { id: 'output', name: 'dfmsph22.out', desc: 'Calculated Results Output' },
+  { id: 'log', name: 'Native Execution Log', desc: 'Compiler & Binary Stderr/Stdout Log' },
 ];
 
 export const CodeViewer: React.FC<CodeViewerProps> = ({ output }) => {
@@ -29,7 +30,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ output }) => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (selectedFile === 'output') return;
+    if (selectedFile === 'output' || selectedFile === 'log') return;
     if (fileContents[selectedFile]) return;
 
     setLoading(true);
@@ -66,11 +67,14 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ output }) => {
     if (selectedFile === 'output') {
       return output?.cOutputText || '# Run calculation to generate output file';
     }
+    if (selectedFile === 'log') {
+      return output?.cLogText || '# Run calculation to generate execution console log';
+    }
     return loading ? `// Loading ${selectedFile}...` : (fileContents[selectedFile] || '// Select a file to view code');
   };
 
   const currentContent = getCurrentContent();
-  const currentFilename = selectedFile === 'output' ? 'dfmsph22.out' : selectedFile;
+  const currentFilename = selectedFile === 'output' ? 'dfmsph22.out' : selectedFile === 'log' ? 'dfmsph22_execution.log' : selectedFile;
 
   return (
     <div className="bg-[#0c0c0e] border border-gray-800 rounded-xl p-3 sm:p-5 shadow-2xl space-y-4 w-full max-w-full min-w-0 overflow-hidden">

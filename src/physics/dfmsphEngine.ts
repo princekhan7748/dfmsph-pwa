@@ -13,10 +13,10 @@ import {
 const E2 = 1.4399648;     /* e^2 in MeV fm */
 const AMU_MEV = 931.4941; /* 1 amu in MeV */
 const H2M_AMU = 20.73553; /* hbar^2 / (2 * m_u) in MeV fm^2 */
-const NUM_Q_GRID = 400;
-const Q_MAX = 12.0;       /* fm^-1 */
-const R_DENSITY_MAX = 15.0; /* fm */
-const NUM_R_DENSITY = 250;
+const NUM_Q_GRID = 600;
+const Q_MAX = 20.0;       /* fm^-1 */
+const R_DENSITY_MAX = 22.0; /* fm */
+const NUM_R_DENSITY = 440; /* dr = 0.05 fm */
 
 function j0_bessel(x: number): number {
   if (Math.abs(x) < 1e-7) {
@@ -40,12 +40,12 @@ export function calculateNuclearDensity(nuc: NucleusConfig, r: number): number {
     }
     case 'ho': {
       const b = nuc.b_ho || 0.90 * Math.pow(nuc.A, 1 / 3);
-      const alpha = nuc.alpha_ho || 0.5;
+      const alpha = nuc.alpha_ho !== undefined ? nuc.alpha_ho : (nuc.A > 4 ? (nuc.A - 4) / 6 : 0);
       const x2 = (r * r) / (b * b);
       return (1.0 + alpha * x2) * Math.exp(-x2);
     }
     case 'gauss': {
-      const a_g = nuc.a || 1.8;
+      const a_g = nuc.a > 0 ? nuc.a : 1.8;
       return Math.exp(-(r * r) / (a_g * a_g));
     }
     default:

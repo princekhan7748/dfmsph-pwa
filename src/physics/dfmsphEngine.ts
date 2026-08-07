@@ -88,31 +88,31 @@ export function computeDensityFT(nuc: NucleusConfig, normFactor: number): { qArr
 export function computeNNFT(nnType: string, q: number, E_per_A: number): number {
   switch (nnType) {
     case 'm3y_paris': {
-      const mu1 = 4.0, v1 = 7999.0;
-      const mu2 = 2.5, v2 = -2134.0;
-      const J_ex = -276.0 * (1.0 - 0.005 * E_per_A);
+      const mu1 = 4.0, v1 = 11061.63 / 4.0;
+      const mu2 = 2.5, v2 = -2537.5 / 2.5;
+      const J_ex = -262.0 * (1.0 - 0.005 * E_per_A);
       return (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
              (4 * Math.PI * v2 / (q * q + mu2 * mu2)) + J_ex;
     }
     case 'm3y_reid': {
-      const mu1 = 4.0, v1 = 6537.5;
-      const mu2 = 2.5, v2 = -1524.25;
-      const J_ex = -262.0 * (1.0 - 0.005 * E_per_A);
+      const mu1 = 4.0, v1 = 7999.0 / 4.0;
+      const mu2 = 2.5, v2 = -2134.0 / 2.5;
+      const J_ex = -276.0 * (1.0 - 0.005 * E_per_A);
       return (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
              (4 * Math.PI * v2 / (q * q + mu2 * mu2)) + J_ex;
     }
     case 'cdm3y6': {
       const sf = 0.82;
-      const mu1 = 4.0, v1 = 7999.0 * sf;
-      const mu2 = 2.5, v2 = -2134.0 * sf;
+      const mu1 = 4.0, v1 = (7999.0 / 4.0) * sf;
+      const mu2 = 2.5, v2 = (-2134.0 / 2.5) * sf;
       const J_ex = -276.0 * sf * (1.0 - 0.005 * E_per_A);
       return (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
              (4 * Math.PI * v2 / (q * q + mu2 * mu2)) + J_ex;
     }
     case 'ddm3y1': {
       const sf = 0.78;
-      const mu1 = 4.0, v1 = 7999.0 * sf;
-      const mu2 = 2.5, v2 = -2134.0 * sf;
+      const mu1 = 4.0, v1 = (7999.0 / 4.0) * sf;
+      const mu2 = 2.5, v2 = (-2134.0 / 2.5) * sf;
       const J_ex = -276.0 * sf;
       return (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
              (4 * Math.PI * v2 / (q * q + mu2 * mu2)) + J_ex;
@@ -192,7 +192,10 @@ export function runDFMSPHCalculation(input: CalculationInput): CalculationOutput
   /* Radial potential grid calculation */
   const radialData: RadialPoint[] = [];
   let maxV = -1e9;
-  let maxR = 8.0;
+  let maxR = R1_ch + R2_ch;
+  const R_contact = R1_ch + R2_ch;
+  const R_search_min = Math.max(1.5, 0.70 * R_contact);
+  const R_search_max = Math.min(input.Rmax, 1.80 * R_contact);
 
   for (let R = input.Rmin; R <= input.Rmax + 1e-5; R += input.Rstep) {
     const rVal = Number(R.toFixed(2));
@@ -201,7 +204,7 @@ export function runDFMSPHCalculation(input: CalculationInput): CalculationOutput
     const V_cent = computeCentrifugalAtR(rVal, input.Lwave, reducedMassAmu);
     const V_tot = V_df + V_c + V_cent;
 
-    if (V_tot > maxV && rVal > 4.5) {
+    if (V_tot > maxV && rVal >= R_search_min && rVal <= R_search_max) {
       maxV = V_tot;
       maxR = rVal;
     }

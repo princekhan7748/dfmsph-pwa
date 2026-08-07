@@ -27,11 +27,11 @@ function generateDensityFile(nuc: NucleusConfig, filename: string) {
   const normFactor = getDensityNormFactor(nuc);
   let content = `==== High-Precision Density File for ${nuc.name} (Z=${nuc.Z}, A=${nuc.A}) ====\n`;
   content += `DFMSPH22 IEEE 754 Double Precision Input\n`;
-  content += `${nuc.Z.toFixed(1)} ${nuc.A.toFixed(1)} 0.050\n`;
+  content += `${nuc.Z.toFixed(1)} ${nuc.A.toFixed(1)} 0.100\n`;
   content += `I     R        RHO-COUL      RHO-PROT      RHO-NEUT     RHO-MASS\n`;
 
-  const dr = 0.05;
-  const rMax = 20.0;
+  const dr = 0.1;
+  const rMax = 10.0;
   const numSteps = Math.round(rMax / dr);
   const protonRatio = nuc.Z / nuc.A;
   const neutronRatio = (nuc.A - nuc.Z) / nuc.A;

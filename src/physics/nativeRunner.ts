@@ -193,7 +193,7 @@ export async function executeNativeDFMSPH(input: CalculationInput): Promise<{ ou
           cOutputText += '\n\n=== out_inp_dfm22.c ===\n' + fs.readFileSync(outInpPath, 'utf-8');
         }
 
-        /* Parse native parameters from out_dfmsph22.c */
+        /* Parse native parameters from out_dfmsph22.c using exact system matching and fixed column layout */
         let native_r_bar: number | null = null;
         let native_Bfus: number | null = null;
         let native_Hom: number | null = null;
@@ -203,35 +203,41 @@ export async function executeNativeDFMSPH(input: CalculationInput): Promise<{ ou
         let native_chi2WS: number | null = null;
 
         if (fs.existsSync(outDFMPath)) {
-          const dfmLines = fs.readFileSync(outDFMPath, 'utf-8').trim().split('\n').filter(Boolean);
-          if (dfmLines.length > 0) {
-            const lastLine = dfmLines[dfmLines.length - 1];
-            const tokens = lastLine.trim().split(/\s+/);
-            /* Tokens in out_dfmsph22.c line:
-             * 0:NN_force, 1:ZP, 2:AP, 3:RP0, 4:ZT, 5:AT, 6:RT0,
-             * 7:r_bar, 8:BfusDFPsph, 9:Hom, 10:BZ, 11:rat_r, 12:rat_B,
-             * 13:C2b, 14:C3b, 15:i1chi2, 16:VWSmem, 17:rWSmem, 18:aWSmem, 19:chi2WSmin
-             */
-            const numbers = tokens.map(Number).filter(n => !isNaN(n));
+          const dfmContent = fs.readFileSync(outDFMPath, 'utf-8');
+          const lines = dfmContent.split('\n');
+          /* Scan lines backwards to find the latest matching result for current reaction system */
+          for (let i = lines.length - 1; i >= 0; i--) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            const numbers = line.split(/\s+/).map(Number).filter(n => !isNaN(n));
             if (numbers.length >= 10) {
-              /* Scan for realistic r_bar (e.g. 4.0..18.0) and Bfus (0.5..400.0) */
-              for (let i = 0; i < numbers.length - 3; i++) {
-                const rCand = numbers[i];
-                const vCand = numbers[i + 1];
-                const hCand = numbers[i + 2];
-                if (rCand > 3.0 && rCand < 22.0 && vCand > 0.1 && vCand < 500.0 && hCand > 0.1 && hCand < 20.0) {
-                  native_r_bar = rCand;
-                  native_Bfus = vCand;
-                  native_Hom = hCand;
-                  if (i + 7 < numbers.length) {
-                    native_VWSmem = numbers[i + 6];
-                    native_rWSmem = numbers[i + 7];
-                    native_aWSmem = numbers[i + 8];
-                    native_chi2WS = numbers[i + 9];
+              /* Look for exact ZP, AP, ZT, AT matching target reaction system */
+              for (let idx = 0; idx <= numbers.length - 10; idx++) {
+                const zp = numbers[idx];
+                const ap = numbers[idx + 1];
+                const zt = numbers[idx + 3];
+                const at = numbers[idx + 4];
+
+                if (zp === input.proj.Z && ap === input.proj.A && zt === input.targ.Z && at === input.targ.A) {
+                  /* Exact system match found! Layout from FUN_DFPOUT():
+                   * idx+0: ZP, idx+1: AP, idx+2: RP0, idx+3: ZT, idx+4: AT, idx+5: RT0
+                   * idx+6: r_bar, idx+7: BfusDFPsph, idx+8: Hom, idx+9: BZ
+                   * idx+10: rat_r, idx+11: rat_B, idx+12: C2b, idx+13: C3b, idx+14: i1chi2
+                   * idx+15: VWSmem, idx+16: rWSmem, idx+17: aWSmem, idx+18: chi2WSmin
+                   */
+                  native_r_bar = numbers[idx + 6];
+                  native_Bfus = numbers[idx + 7];
+                  native_Hom = numbers[idx + 8];
+                  if (idx + 18 < numbers.length) {
+                    native_VWSmem = numbers[idx + 15];
+                    native_rWSmem = numbers[idx + 16];
+                    native_aWSmem = numbers[idx + 17];
+                    native_chi2WS = numbers[idx + 18];
                   }
                   break;
                 }
               }
+              if (native_r_bar !== null) break;
             }
           }
         }
@@ -252,12 +258,32 @@ export async function executeNativeDFMSPH(input: CalculationInput): Promise<{ ou
           const lines = fs.readFileSync(outURPath, 'utf-8').split('\n');
           for (const line of lines) {
             const trimmed = line.trim();
-            if (!trimmed || trimmed.startsWith('RCM') || trimmed.startsWith('<') || trimmed.startsWith('DFMSPH') || trimmed.startsWith('ZP') || trimmed.startsWith('M3Y') || trimmed.startsWith('MIG') || trimmed.startsWith('RMF') || trimmed.startsWith('Reid') || trimmed.startsWith('Paris')) {
-              continue;
+            if (!trimmed) continue;
+
+            /* Stop parsing radial table immediately at FUN_SEAL trailer headers */
+            if (
+              trimmed.includes('R_bar=') ||
+              trimmed.startsWith('<') ||
+              trimmed.startsWith('DFMSPH') ||
+              trimmed.startsWith('ZP') ||
+              trimmed.startsWith('M3Y') ||
+              trimmed.startsWith('MIG') ||
+              trimmed.startsWith('RMF') ||
+              trimmed.startsWith('Reid') ||
+              trimmed.startsWith('Paris') ||
+              trimmed.includes('density dependent') ||
+              trimmed.includes('NN-forces')
+            ) {
+              break; /* End of radial data table */
             }
+
+            if (trimmed.startsWith('RCM')) continue; /* Skip table header */
+
             const parts = trimmed.split(/\s+/).map(Number);
             if (parts.length >= 4 && !isNaN(parts[0]) && !isNaN(parts[1])) {
               const R = parts[0];
+              if (R < 0 || R > 50.0) continue;
+
               const V_df = parts[1];
               const V_c = parts[2] || 0;
               const V_tot_c = parts[3] || (V_df + V_c);

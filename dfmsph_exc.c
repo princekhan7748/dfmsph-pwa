@@ -297,8 +297,13 @@ double FUN_UEX(double El, double R)
 			if(ECM>UDFP)jB0_k_R_ss=sin(argB)/(argB);
    			else
    			{
-   				double cl_arg = argB > 60.0 ? 60.0 : argB;
-   				jB0_k_R_ss=(exp(cl_arg)-exp(-cl_arg))/2./cl_arg;
+   				if(argB<500.) jB0_k_R_ss=(exp(argB)-exp(-argB))/2./argB;
+   				else
+   				{
+   					code_end=-125;printf("\n<<<<< code_end=%3ld <<<< bad argument for Bessel function = %9.2e \n",
+   						                                code_end,argB);
+   					return(-10.);
+   				}
    			}
    		}
    	  	GexMdim[is]=FUN_GEX(R,ss);vex=FUN_VEX(ss);
@@ -310,8 +315,13 @@ double FUN_UEX(double El, double R)
 			if(ECM>UDFP)jB0_k_R_ss=sin(argB)/(argB);
    			else
    			{
-   				double cl_arg = argB > 60.0 ? 60.0 : argB;
-   				jB0_k_R_ss=(exp(cl_arg)-exp(-cl_arg))/2./cl_arg;
+   				if(argB<500.) jB0_k_R_ss=(exp(argB)-exp(-argB))/2./argB;
+   				else
+   				{
+   					code_end=-125;printf("\n<<<<< code_end=%3ld <<<< bad argument for Bessel function = %9.2e \n",
+   						                                code_end,argB);
+   					return(-10.);
+   				}
    			}
 		}
    	  	GexPdim[is]=FUN_GEX(R,ss);
@@ -338,8 +348,13 @@ double FUN_UCEX(double El, double R)
 			if(ECM>UDFP)jB0_k_R_ss=sin(argB)/(argB);
    			else
    			{
-   				double cl_arg = argB > 60.0 ? 60.0 : argB;
-   				jB0_k_R_ss=(exp(cl_arg)-exp(-cl_arg))/2./cl_arg;
+   				if(argB<500.) jB0_k_R_ss=(exp(argB)-exp(-argB))/2./argB;
+   				else
+   				{
+   					code_end=-126;printf("\n<<<<< code_end=%3ld <<<< bad argument for Bessel function = %9.2e \n",
+   						                                code_end,argB);
+   					return(-10.);
+   				}
    			}
    		}
    	  	GCexMdim[is]=FUN_GCEX(R,ss);vCex=FUN_VCEX(ss);
@@ -351,8 +366,13 @@ double FUN_UCEX(double El, double R)
 			if(ECM>UDFP)jB0_k_R_ss=sin(argB)/(argB);
    			else
    			{
-   				double cl_arg = argB > 60.0 ? 60.0 : argB;
-   				jB0_k_R_ss=(exp(cl_arg)-exp(-cl_arg))/2./cl_arg;
+   				if(argB<500.) jB0_k_R_ss=(exp(argB)-exp(-argB))/2./argB;
+   				else
+   				{
+   					code_end=-126;printf("\n<<<<< code_end=%3ld <<<< bad argument for Bessel function = %9.2e \n",
+   						                                code_end,argB);
+   					return(-10.);
+   				}
    			}
 		}
    	  	GCexPdim[is]=FUN_GCEX(R,ss);

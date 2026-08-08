@@ -250,8 +250,13 @@ double FUN_DFPFIN(double rCC)
 	Umem=UDFP;
 	UND=FUN_UNDIR(0.,k_up);
 	if(ZP>0)UCD=FUN_UC00(0.,k_up);
-	if(iter>0)UN=UND+Uex;else UN=UND;
-	if(iter>0)UC=UCD+UCex;else UC=UCD;
+	if(iter==0)
+	{
+		Uex=FUN_UNEXCDEL(0.,k_up);
+		UCex=0.;
+	}
+	UN=UND+Uex;
+	if(ZP>0)UC=UCD+UCex;else UC=UCD;
 	UDFP=UN+UC;
 	Uex=FUN_UEX(Elab,rCC);
 	UCex=FUN_UCEX(Elab,rCC);

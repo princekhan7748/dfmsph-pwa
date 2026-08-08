@@ -77,6 +77,9 @@ function generateInputDFMSPH22(input: CalculationInput): string {
   const key_ex = 1;
   const key_C = 1;
 
+  const startR = Math.max(Rmax, Rmin);
+  const finR = Math.min(Rmax, Rmin);
+
   let lines: string[] = [];
   lines.push(`${proj.name} + ${targ.name} System Input File for DFMSPH22`);
   lines.push(`ECM r00 iC2b`);
@@ -86,7 +89,7 @@ function generateInputDFMSPH22(input: CalculationInput): string {
   lines.push(`iter_up key_ex key_vN key_D key_C AdelCorr`);
   lines.push(`30 ${key_ex} ${key_vN} ${key_D} ${key_C} 0.0`);
   lines.push(`k_up Crup eps_iter RCCstart RCCfin RCCstep`);
-  lines.push(`3.0 1.5 0.0001 ${Rmax.toFixed(2)} ${Rmin.toFixed(2)} ${Rstep.toFixed(3)}`);
+  lines.push(`3.0 1.5 0.0001 ${startR.toFixed(2)} ${finR.toFixed(2)} ${Rstep.toFixed(3)}`);
   lines.push(`rWSmin rWSmax rWSstep VWSmin VWSmax VWSstep aWSmin aWSmax aWSstep chi2WS`);
   lines.push(`0.90 1.45 0.02 -250.0 -30.0 5.0 0.40 0.90 0.02 1.0`);
   lines.push(`fRBstart fRBfin deliR`);
@@ -94,7 +97,7 @@ function generateInputDFMSPH22(input: CalculationInput): string {
   lines.push(`rGKmin rGKmax rGKstep aGKmin aGKmax aGKstep`);
   lines.push(`1.0 1.4 0.05 0.5 0.8 0.05`);
   lines.push(`Amindim Amaxdim Astepdim chi2GK`);
-  lines.push(`0.0 10.0 1.0 0.0 10.0 1.0 0.0 10.0 1.0 1.0`);
+  lines.push(`0.0 10.0 1.0 0.0 10.0 1.0 0.0 10.0 1.0 0.0`);
 
   return lines.join('\n') + '\n';
 }

@@ -84,6 +84,7 @@ void FUN_INP()
 	if(key_vN!=0 && key_vN!=1 && key_vN!=2 && key_vN!=11 && key_vN!=12 && key_vN!=13 && key_vN!=14 && key_vN!=21 && key_vN!=23)
 	{printf("\n ======= Bad parameter key_vNN=%lf. It must be 0, 1, 2; 11, 12, 13, 14, 21, 23==== \n",key_vN);code_end=-115;return;}
 	key_vNN=key_vN/1;
+	key_DD=key_D/1;
 	if(key_C!=0 && key_C!=1)
 	{printf("\n ======= Bad parameter key_UC=%lf. It must be 0 or 1 ==== \n",key_C);code_end=-116;return;}
 	key_UC=key_C/1;

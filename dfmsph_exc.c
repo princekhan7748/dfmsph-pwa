@@ -7,13 +7,14 @@ double FUN_KFERMI(double r, long iNUC)
 	if(rho<1e-12) return(0.);
 	kF=pow(1.5*pi*pi*rho,0.6666666);
 	absGRADrho=sqrt(DrhoDr*DrhoDr);
-	LAPLACErho=D2rhoDr2+2.*DrhoDr/r;
+	LAPLACErho=D2rhoDr2 + (r > 1e-5 ? 2.*DrhoDr/r : 0.);
 	if(rho>1e-6)
 	{
 		kF+=5.*CS*absGRADrho*absGRADrho/rho/rho/3.;
 		if(r>0.2*(RP0*(-iNUC+1)+RT0*iNUC)) kF+=5.*LAPLACErho/rho/36.;
 	}
 	if(kF<0.){kF=0.;}
+	if(kF>6.25){kF=6.25;} /* Physical cap: kF <= 2.5 fm^-1 */
 	kF=sqrt(kF);
 	return(kF);
 }
@@ -92,17 +93,27 @@ double FUN_ZEX(double t, double s, long iNUC, long m)
 void FUN_HYEX()
 {
 	long it,is;
+	sup=Crup*(RP0 > RT0 ? RP0 : RT0);
+	tup=k_up;
+	for(is=1;is<ikGup;is++)
+	{
+		sssM[is]=kMdim[is]*sup/k_up;
+		sssP[is]=kPdim[is]*sup/k_up;
+	}
+	for(it=1;it<ikGup;it++)
+	{
+		tttM[it]=kMdim[it]*tup/k_up;
+		tttP[it]=kPdim[it]*tup/k_up;
+	}
+
 	for(iNUC=0;iNUC<2;iNUC++)
  	{
-  		tup=k_up;
-		rup=sup=Crup*(iNUC==0 ? RP0 : RT0);
+		rup=Crup*(iNUC==0 ? RP0 : RT0);
   		  	
 		for(it=1;it<ikGup;it++)
   		{
-   			tttM[it]=kMdim[it]*tup/k_up;
    			for(is=1;is<ikGup;is++)
 			{
-				sssM[is]=kMdim[is]*sup/k_up;
 	  		 	hdimMM[it][is][iNUC]=FUN_HEX(tttM[it],sssM[is],iNUC);
 	  		 	if(fabs(alDD)>alittle)ydimMM[it][is][iNUC]=FUN_YEX(tttM[it],sssM[is],iNUC);
 	  			if(fabs( gDD)>alittle)
@@ -110,7 +121,6 @@ void FUN_HYEX()
 					zdimMM[it][is][iNUC][0]=FUN_ZEX(tttM[it],sssM[is],iNUC,1);
 	  				zdimMM[it][is][iNUC][1]=FUN_ZEX(tttM[it],sssM[is],iNUC,2);
 				}
-	  	 		sssP[is]=kPdim[is]*sup/k_up;
 	  			hdimMP[it][is][iNUC]=FUN_HEX(tttM[it],sssP[is],iNUC);
 	  	 		if(fabs(alDD)>alittle)ydimMP[it][is][iNUC]=FUN_YEX(tttM[it],sssP[is],iNUC);
 	  			if(fabs( gDD)>alittle)
@@ -119,10 +129,8 @@ void FUN_HYEX()
 	  				zdimMP[it][is][iNUC][1]=FUN_ZEX(tttM[it],sssP[is],iNUC,2);
 				}
 			}
-			tttP[it]=kPdim[it]*tup/k_up;
 			for(is=1;is<ikGup;is++)
 			{
-	 			sssM[is]=kMdim[is]*sup/k_up;
 	   			hdimPM[it][is][iNUC]=FUN_HEX(tttP[it],sssM[is],iNUC);
 	   			if(fabs(alDD)>alittle)ydimPM[it][is][iNUC]=FUN_YEX(tttP[it],sssM[is],iNUC);
 				if(fabs(gDD)>alittle)
@@ -130,7 +138,6 @@ void FUN_HYEX()
 					zdimPM[it][is][iNUC][0]=FUN_ZEX(tttP[it],sssM[is],iNUC,1);
 					zdimPM[it][is][iNUC][1]=FUN_ZEX(tttP[it],sssM[is],iNUC,2);
 				}
-   				sssP[is]=kPdim[is]*sup/k_up;
 				hdimPP[it][is][iNUC]=FUN_HEX(tttP[it],sssP[is],iNUC);
 				if(fabs(alDD)>alittle)ydimPP[it][is][iNUC]=FUN_YEX(tttP[it],sssP[is],iNUC);
 				if(fabs(gDD)>alittle)
@@ -147,10 +154,11 @@ void FUN_HYEX()
 void FUN_HCYEX()
 {
 	long it,is;
+	sup=Crup*(RP0 > RT0 ? RP0 : RT0);
+	tup=k_up;
 	for(iNUC=0;iNUC<2;iNUC++)
  	{
-  		tup=k_up;
-		rup=sup=Crup*(iNUC==0 ? RP0 : RT0);
+		rup=Crup*(iNUC==0 ? RP0 : RT0);
 
 		typ=0;
 		for(it=1;it<ikGup;it++)

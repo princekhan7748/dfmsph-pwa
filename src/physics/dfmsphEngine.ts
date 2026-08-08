@@ -85,50 +85,62 @@ export function computeDensityFT(nuc: NucleusConfig, normFactor: number): { qArr
   return { qArray, ftArray };
 }
 
-export function computeNNFT(nnType: string, q: number, E_per_A: number): number {
+export function computeNNFT(nnType: string, q: number, E_per_A: number, key_ex: number = 1, vNN_scale: number = 1.0): number {
+  const exFactor = key_ex === 0 ? 0 : 1;
+  let v_nn = 0;
+
   switch (nnType) {
     case 'm3y_paris': {
       const mu1 = 4.0, v1 = 11061.63 / 4.0;
       const mu2 = 2.5, v2 = -2537.5 / 2.5;
-      const J_ex = -262.0 * (1.0 - 0.005 * E_per_A);
-      return (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
+      const J_ex = exFactor * (-262.0 * (1.0 - 0.005 * E_per_A));
+      v_nn = (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
              (4 * Math.PI * v2 / (q * q + mu2 * mu2)) + J_ex;
+      break;
     }
     case 'm3y_reid': {
       const mu1 = 4.0, v1 = 7999.0 / 4.0;
       const mu2 = 2.5, v2 = -2134.0 / 2.5;
-      const J_ex = -276.0 * (1.0 - 0.005 * E_per_A);
-      return (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
+      const J_ex = exFactor * (-276.0 * (1.0 - 0.005 * E_per_A));
+      v_nn = (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
              (4 * Math.PI * v2 / (q * q + mu2 * mu2)) + J_ex;
+      break;
     }
     case 'cdm3y6': {
       const sf = 0.82;
       const mu1 = 4.0, v1 = (7999.0 / 4.0) * sf;
       const mu2 = 2.5, v2 = (-2134.0 / 2.5) * sf;
-      const J_ex = -276.0 * sf * (1.0 - 0.005 * E_per_A);
-      return (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
+      const J_ex = exFactor * (-276.0 * sf * (1.0 - 0.005 * E_per_A));
+      v_nn = (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
              (4 * Math.PI * v2 / (q * q + mu2 * mu2)) + J_ex;
+      break;
     }
     case 'ddm3y1': {
       const sf = 0.78;
       const mu1 = 4.0, v1 = (7999.0 / 4.0) * sf;
       const mu2 = 2.5, v2 = (-2134.0 / 2.5) * sf;
-      const J_ex = -276.0 * sf;
-      return (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
+      const J_ex = exFactor * (-276.0 * sf);
+      v_nn = (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
              (4 * Math.PI * v2 / (q * q + mu2 * mu2)) + J_ex;
+      break;
     }
     case 'migdal': {
-      return -378.0;
+      v_nn = -378.0;
+      break;
     }
     case 'rmf_nl3': {
       const m_omega = 3.96, g_omega2 = 160.0;
       const m_sigma = 2.58, g_sigma2 = 102.0;
-      return (4 * Math.PI * g_omega2 / (q * q + m_omega * m_omega)) -
+      v_nn = (4 * Math.PI * g_omega2 / (q * q + m_omega * m_omega)) -
              (4 * Math.PI * g_sigma2 / (q * q + m_sigma * m_sigma));
+      break;
     }
     default:
-      return -300.0;
+      v_nn = -300.0;
+      break;
   }
+
+  return v_nn * vNN_scale;
 }
 
 export function computeDoubleFoldingAtR(
@@ -137,13 +149,17 @@ export function computeDoubleFoldingAtR(
   ft1: number[],
   ft2: number[],
   nnType: string,
-  E_per_A: number
+  E_per_A: number,
+  key_ex: number = 1,
+  vNN_scale: number = 1.0,
+  k_up: number = Q_MAX
 ): number {
   const dq = Q_MAX / NUM_Q_GRID;
   let sum = 0;
   for (let i = 0; i < NUM_Q_GRID; i++) {
     const q = qArray[i];
-    const v_nn = computeNNFT(nnType, q, E_per_A);
+    if (q > k_up) break;
+    const v_nn = computeNNFT(nnType, q, E_per_A, key_ex, vNN_scale);
     const weight = (i === 0 || i === NUM_Q_GRID - 1) ? 0.5 : 1.0;
     sum += weight * q * q * ft1[i] * ft2[i] * v_nn * j0_bessel(q * R) * dq;
   }
@@ -197,10 +213,15 @@ export function runDFMSPHCalculation(input: CalculationInput): CalculationOutput
   const R_search_min = Math.max(1.5, 0.70 * R_contact);
   const R_search_max = Math.min(input.Rmax, 1.80 * R_contact);
 
+  const key_ex = input.key_ex ?? 1;
+  const key_C = input.key_C ?? 1;
+  const vNN_scale = input.vNN_scale ?? 1.0;
+  const k_up = input.k_up ?? 3.0;
+
   for (let R = input.Rmin; R <= input.Rmax + 1e-5; R += input.Rstep) {
     const rVal = Number(R.toFixed(2));
-    const V_df = computeDoubleFoldingAtR(rVal, qArray, ft1, ft2, input.nnType, E_per_A);
-    const V_c = computeCoulombAtR(rVal, input.proj.Z, input.targ.Z, R1_ch, R2_ch);
+    const V_df = computeDoubleFoldingAtR(rVal, qArray, ft1, ft2, input.nnType, E_per_A, key_ex, vNN_scale, k_up);
+    const V_c = key_C !== 0 ? computeCoulombAtR(rVal, input.proj.Z, input.targ.Z, R1_ch, R2_ch) : 0;
     const V_cent = computeCentrifugalAtR(rVal, input.Lwave, reducedMassAmu);
     const V_tot = V_df + V_c + V_cent;
 

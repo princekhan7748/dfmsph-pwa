@@ -30,6 +30,23 @@ export const ReactionForm: React.FC<ReactionFormProps> = ({
   onSelectPreset,
   selectedEngine = 'ts'
 }) => {
+  const [showTuning, setShowTuning] = React.useState<boolean>(false);
+
+  const resetTuningDefaults = () => {
+    setInput(prev => ({
+      ...prev,
+      k_up: 3.0,
+      Crup: 1.5,
+      eps_iter: 0.0001,
+      iter_up: 30,
+      r00: 1.2,
+      dr_density: 0.1,
+      rMax_density: 10.0,
+      key_ex: 1,
+      key_C: 1,
+      vNN_scale: 1.0
+    }));
+  };
 
   const handleProjChange = (field: string, value: any) => {
     setInput(prev => ({
@@ -346,6 +363,170 @@ export const ReactionForm: React.FC<ReactionFormProps> = ({
           </div>
         </div>
 
+      </div>
+
+      {/* Advanced DFMSPH Numerical Tuning Parameters Toggle */}
+      <div className="bg-[#09090b] rounded-lg border border-gray-800 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowTuning(!showTuning)}
+          className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-mono uppercase tracking-wider text-gray-300 hover:text-white hover:bg-gray-900/60 transition-colors"
+        >
+          <div className="flex items-center space-x-2">
+            <Sliders className="w-3.5 h-3.5 text-amber-400" />
+            <span className="font-semibold text-amber-400">DFMSPH Numerical & Physics Tuning Parameters</span>
+            <span className="text-[10px] text-gray-500 font-normal border border-gray-800 rounded px-1.5 py-0.5">
+              k_up, Crup, eps_iter, r00, dr, key_ex, key_C
+            </span>
+          </div>
+          <span className="text-amber-400 font-bold text-sm">{showTuning ? '−' : '+'}</span>
+        </button>
+
+        {showTuning && (
+          <div className="p-4 border-t border-gray-800/80 bg-black/40 space-y-4">
+            <div className="flex items-center justify-between text-[11px] font-mono text-gray-400 border-b border-gray-800/60 pb-2">
+              <span>Tune double-folding integral cutoffs, iteration accuracy, and interaction switches</span>
+              <button
+                type="button"
+                onClick={resetTuningDefaults}
+                className="text-[10px] text-amber-400 hover:underline flex items-center space-x-1"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset DFMSPH Defaults</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {/* Momentum Cutoff k_up */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1" title="Momentum-space integral cutoff k_up (fm^-1)">
+                  Momentum Cutoff k_up (fm⁻¹)
+                </label>
+                <input
+                  type="number"
+                  step="0.2"
+                  value={input.k_up ?? 3.0}
+                  onChange={e => setInput(prev => ({ ...prev, k_up: parseFloat(e.target.value) || 3.0 }))}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-2.5 py-1.5 text-xs text-amber-400 font-mono outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Density Cutoff Crup */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1" title="Real-space density integration cutoff multiplier Crup">
+                  Density Cutoff Crup (× r_bar)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={input.Crup ?? 1.5}
+                  onChange={e => setInput(prev => ({ ...prev, Crup: parseFloat(e.target.value) || 1.5 }))}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-2.5 py-1.5 text-xs text-amber-400 font-mono outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Convergence eps_iter */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1" title="Exchange iteration convergence threshold eps_iter">
+                  Iteration Tolerance ε_iter
+                </label>
+                <input
+                  type="number"
+                  step="0.0001"
+                  value={input.eps_iter ?? 0.0001}
+                  onChange={e => setInput(prev => ({ ...prev, eps_iter: parseFloat(e.target.value) || 0.0001 }))}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-2.5 py-1.5 text-xs text-amber-400 font-mono outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Max Exchange Iterations iter_up */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1" title="Max exchange iteration steps iter_up">
+                  Max Iterations iter_up
+                </label>
+                <input
+                  type="number"
+                  value={input.iter_up ?? 30}
+                  onChange={e => setInput(prev => ({ ...prev, iter_up: parseInt(e.target.value) || 30 }))}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-2.5 py-1.5 text-xs text-amber-400 font-mono outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Nuclear Radius Parameter r00 */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1" title="Nuclear radius parameter r00 (fm) for R0 = r00 * A^(1/3)">
+                  Nuclear Radius r00 (fm)
+                </label>
+                <input
+                  type="number"
+                  step="0.05"
+                  value={input.r00 ?? 1.20}
+                  onChange={e => setInput(prev => ({ ...prev, r00: parseFloat(e.target.value) || 1.2 }))}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-2.5 py-1.5 text-xs text-amber-400 font-mono outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Density Table Step dr */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1" title="Density grid step size dr in fm for inp_rhoP.c & inp_rhoT.c">
+                  Density Table Step dr (fm)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={input.dr_density ?? 0.10}
+                  onChange={e => setInput(prev => ({ ...prev, dr_density: parseFloat(e.target.value) || 0.10 }))}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-2.5 py-1.5 text-xs text-amber-400 font-mono outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Knock-on Exchange Switch key_ex */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1">
+                  Exchange Term (key_ex)
+                </label>
+                <select
+                  value={input.key_ex ?? 1}
+                  onChange={e => setInput(prev => ({ ...prev, key_ex: parseInt(e.target.value) ?? 1 }))}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 font-mono outline-none focus:border-amber-500"
+                >
+                  <option value={1}>1: Knock-on Exchange Included</option>
+                  <option value={0}>0: Direct Potential Only</option>
+                </select>
+              </div>
+
+              {/* Coulomb Potential Switch key_C */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1">
+                  Coulomb Potential (key_C)
+                </label>
+                <select
+                  value={input.key_C ?? 1}
+                  onChange={e => setInput(prev => ({ ...prev, key_C: parseInt(e.target.value) ?? 1 }))}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 font-mono outline-none focus:border-amber-500"
+                >
+                  <option value={1}>1: Folded/Charge Coulomb</option>
+                  <option value={0}>0: Nuclear Potential Only</option>
+                </select>
+              </div>
+
+              {/* Potential Strength Scale Factor vNN_scale */}
+              <div>
+                <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1" title="Overall potential strength scale factor N_v">
+                  Potential Scale N_v
+                </label>
+                <input
+                  type="number"
+                  step="0.05"
+                  value={input.vNN_scale ?? 1.0}
+                  onChange={e => setInput(prev => ({ ...prev, vNN_scale: parseFloat(e.target.value) || 1.0 }))}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-2.5 py-1.5 text-xs text-amber-400 font-mono outline-none focus:border-amber-500"
+                />
+              </div>
+
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Calculate Button */}

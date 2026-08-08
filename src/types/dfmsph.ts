@@ -33,6 +33,18 @@ export interface CalculationInput {
   Rmin: number;        /* Minimum R in fm */
   Rmax: number;        /* Maximum R in fm */
   Rstep: number;       /* Radial step dR in fm */
+
+  /* Advanced DFMSPH Tuning Parameters */
+  k_up?: number;         /* Momentum-space integration cutoff k_up (default 3.0 fm^-1) */
+  Crup?: number;         /* Real-space density integration cutoff multiplier Crup (default 1.5) */
+  eps_iter?: number;     /* Iteration convergence tolerance (default 0.0001) */
+  iter_up?: number;     /* Max exchange iteration count (default 30) */
+  r00?: number;          /* Nuclear radius parameter r00 (default 1.20 fm) */
+  dr_density?: number;   /* Density table radial step dr in fm (default 0.10 fm) */
+  rMax_density?: number; /* Density table max radius rMax in fm (default 10.0 fm) */
+  key_ex?: number;       /* Knock-on exchange switch: 1 = Included, 0 = Direct only */
+  key_C?: number;        /* Coulomb potential switch: 1 = Folded, 0 = Nuclear only */
+  vNN_scale?: number;    /* Re-normalization / strength scale factor for V_df (default 1.0) */
 }
 
 export interface RadialPoint {

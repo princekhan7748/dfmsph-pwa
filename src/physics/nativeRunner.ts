@@ -23,15 +23,16 @@ import {
  * barrier parameters (r_bar, BfusDFPsph, Hom, VWSmem, rWSmem, aWSmem), and provides transparent execution logging.
  */
 
-function generateDensityFile(nuc: NucleusConfig, filename: string) {
+function generateDensityFile(nuc: NucleusConfig, filename: string, dr_input?: number, rMax_input?: number) {
   const normFactor = getDensityNormFactor(nuc);
+  const dr = dr_input ?? 0.1;
+  const rMax = rMax_input ?? 10.0;
+
   let content = `==== High-Precision Density File for ${nuc.name} (Z=${nuc.Z}, A=${nuc.A}) ====\n`;
   content += `DFMSPH22 IEEE 754 Double Precision Input\n`;
-  content += `${nuc.Z.toFixed(1)} ${nuc.A.toFixed(1)} 0.100\n`;
+  content += `${nuc.Z.toFixed(1)} ${nuc.A.toFixed(1)} ${dr.toFixed(3)}\n`;
   content += `I     R        RHO-COUL      RHO-PROT      RHO-NEUT     RHO-MASS\n`;
 
-  const dr = 0.1;
-  const rMax = 10.0;
   const numSteps = Math.round(rMax / dr);
   const protonRatio = nuc.Z / nuc.A;
   const neutronRatio = (nuc.A - nuc.Z) / nuc.A;
@@ -73,9 +74,13 @@ function generateInputDFMSPH22(input: CalculationInput): string {
   else if (nnType === 'rmf_nl3') { key_vN = 13; key_D = 0; }
   else if (nnType === 'rmf_tm1') { key_vN = 14; key_D = 0; }
 
-  const r00 = 1.2;
-  const key_ex = 1;
-  const key_C = 1;
+  const r00 = input.r00 ?? 1.2;
+  const key_ex = input.key_ex ?? 1;
+  const key_C = input.key_C ?? 1;
+  const k_up = input.k_up ?? 3.0;
+  const Crup = input.Crup ?? 1.5;
+  const eps_iter = input.eps_iter ?? 0.0001;
+  const iter_up = input.iter_up ?? 30;
 
   const startR = Math.max(Rmax, Rmin);
   const finR = Math.min(Rmax, Rmin);
@@ -87,9 +92,9 @@ function generateInputDFMSPH22(input: CalculationInput): string {
   lines.push(`ZP AP ZT AT`);
   lines.push(`${proj.Z.toFixed(1)} ${proj.A.toFixed(1)} ${targ.Z.toFixed(1)} ${targ.A.toFixed(1)}`);
   lines.push(`iter_up key_ex key_vN key_D key_C AdelCorr`);
-  lines.push(`30 ${key_ex} ${key_vN} ${key_D} ${key_C} 0.0`);
+  lines.push(`${Math.round(iter_up)} ${key_ex} ${key_vN} ${key_D} ${key_C} 0.0`);
   lines.push(`k_up Crup eps_iter RCCstart RCCfin RCCstep`);
-  lines.push(`3.0 1.5 0.0001 ${startR.toFixed(2)} ${finR.toFixed(2)} ${Rstep.toFixed(3)}`);
+  lines.push(`${k_up.toFixed(2)} ${Crup.toFixed(2)} ${eps_iter.toExponential(4)} ${startR.toFixed(2)} ${finR.toFixed(2)} ${Rstep.toFixed(3)}`);
   lines.push(`rWSmin rWSmax rWSstep VWSmin VWSmax VWSstep aWSmin aWSmax aWSstep chi2WS`);
   lines.push(`0.90 1.45 0.02 -250.0 -30.0 5.0 0.40 0.90 0.02 1.0`);
   lines.push(`fRBstart fRBfin deliR`);
@@ -162,8 +167,8 @@ export async function executeNativeDFMSPH(input: CalculationInput): Promise<{ ou
   const cInputText = generateInputDFMSPH22(input);
   fs.writeFileSync(path.join(cwd, 'INP_DFMSPH22.c'), cInputText, 'utf-8');
   fs.writeFileSync(path.join(cwd, 'INP_NN_forces.c'), generateNNForcesFile(), 'utf-8');
-  generateDensityFile(input.proj, path.join(cwd, 'inp_rhoP.c'));
-  generateDensityFile(input.targ, path.join(cwd, 'inp_rhoT.c'));
+  generateDensityFile(input.proj, path.join(cwd, 'inp_rhoP.c'), input.dr_density, input.rMax_density);
+  generateDensityFile(input.targ, path.join(cwd, 'inp_rhoT.c'), input.dr_density, input.rMax_density);
 
   /* Execute native C binary */
   return new Promise((resolve) => {

@@ -4,12 +4,16 @@ double FUN_KFERMI(double r, long iNUC)
 {
 	static double kF;
 	rho=FUN_RHOtable(r,iNUC,0);
+	if(rho<1e-12) return(0.);
 	kF=pow(1.5*pi*pi*rho,0.6666666);
 	absGRADrho=sqrt(DrhoDr*DrhoDr);
 	LAPLACErho=D2rhoDr2+2.*DrhoDr/r;
-	kF+=5.*CS*absGRADrho*absGRADrho/rho/rho/3.;
-	if(r>0.2*(RP0*(-iNUC+1)+RT0*iNUC)) kF+=5.*LAPLACErho/rho/36.;
-	if(kF<0.){printf("\n<<<<<<<< U_EXC: wrong kF=%9.2e >>>>>>>>>\n\n",kF);code_end=-51;return(1.);}
+	if(rho>1e-6)
+	{
+		kF+=5.*CS*absGRADrho*absGRADrho/rho/rho/3.;
+		if(r>0.2*(RP0*(-iNUC+1)+RT0*iNUC)) kF+=5.*LAPLACErho/rho/36.;
+	}
+	if(kF<0.){kF=0.;}
 	kF=sqrt(kF);
 	return(kF);
 }
@@ -91,7 +95,7 @@ void FUN_HYEX()
 	for(iNUC=0;iNUC<2;iNUC++)
  	{
   		tup=k_up;
-		rup=sup=Crup*RT0;
+		rup=sup=Crup*(iNUC==0 ? RP0 : RT0);
   		  	
 		for(it=1;it<ikGup;it++)
   		{
@@ -146,7 +150,7 @@ void FUN_HCYEX()
 	for(iNUC=0;iNUC<2;iNUC++)
  	{
   		tup=k_up;
-		rup=sup=Crup*RT0;
+		rup=sup=Crup*(iNUC==0 ? RP0 : RT0);
 
 		typ=0;
 		for(it=1;it<ikGup;it++)
@@ -293,13 +297,8 @@ double FUN_UEX(double El, double R)
 			if(ECM>UDFP)jB0_k_R_ss=sin(argB)/(argB);
    			else
    			{
-   				if(argB<500.) jB0_k_R_ss=(exp(argB)-exp(-argB))/2./argB;
-   				else
-   				{
-   					code_end=-125;printf("\n<<<<< code_end=%3ld <<<< bad argument for Bessel function = %9.2e \n",
-   						                                code_end,argB);
-   					return(-10.);
-   				}
+   				double cl_arg = argB > 60.0 ? 60.0 : argB;
+   				jB0_k_R_ss=(exp(cl_arg)-exp(-cl_arg))/2./cl_arg;
    			}
    		}
    	  	GexMdim[is]=FUN_GEX(R,ss);vex=FUN_VEX(ss);
@@ -309,7 +308,11 @@ double FUN_UEX(double El, double R)
    		if(fabs(argB)>alittle)
 		{
 			if(ECM>UDFP)jB0_k_R_ss=sin(argB)/(argB);
-   			else jB0_k_R_ss=(exp(argB)-exp(-argB))/2./argB;
+   			else
+   			{
+   				double cl_arg = argB > 60.0 ? 60.0 : argB;
+   				jB0_k_R_ss=(exp(cl_arg)-exp(-cl_arg))/2./cl_arg;
+   			}
 		}
    	  	GexPdim[is]=FUN_GEX(R,ss);
    		IntP=GexPdim[is]*jB0_k_R_ss*FUN_VEX(ss)*ss*ss;
@@ -335,13 +338,8 @@ double FUN_UCEX(double El, double R)
 			if(ECM>UDFP)jB0_k_R_ss=sin(argB)/(argB);
    			else
    			{
-   				if(argB<500.) jB0_k_R_ss=(exp(argB)-exp(-argB))/2./argB;
-   				else
-   				{
-   					code_end=-126;printf("\n<<<<< code_end=%3ld <<<< bad argument for Bessel function = %9.2e \n",
-   						                                code_end,argB);
-   					return(-10.);
-   				}
+   				double cl_arg = argB > 60.0 ? 60.0 : argB;
+   				jB0_k_R_ss=(exp(cl_arg)-exp(-cl_arg))/2./cl_arg;
    			}
    		}
    	  	GCexMdim[is]=FUN_GCEX(R,ss);vCex=FUN_VCEX(ss);
@@ -351,7 +349,11 @@ double FUN_UCEX(double El, double R)
    		if(fabs(argB)>alittle)
 		{
 			if(ECM>UDFP)jB0_k_R_ss=sin(argB)/(argB);
-   			else jB0_k_R_ss=(exp(argB)-exp(-argB))/2./argB;
+   			else
+   			{
+   				double cl_arg = argB > 60.0 ? 60.0 : argB;
+   				jB0_k_R_ss=(exp(cl_arg)-exp(-cl_arg))/2./cl_arg;
+   			}
 		}
    	  	GCexPdim[is]=FUN_GCEX(R,ss);
    		IntP=GCexPdim[is]*jB0_k_R_ss*FUN_VCEX(ss)*ss*ss;

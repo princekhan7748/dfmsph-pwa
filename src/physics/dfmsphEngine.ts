@@ -135,6 +135,13 @@ export function computeNNFT(nnType: string, q: number, E_per_A: number, key_ex: 
              (4 * Math.PI * g_sigma2 / (q * q + m_sigma * m_sigma));
       break;
     }
+    case 'rmf_tm1': {
+      const m_omega = 3.96, g_omega2 = 180.0;
+      const m_sigma = 2.62, g_sigma2 = 110.0;
+      v_nn = (4 * Math.PI * g_omega2 / (q * q + m_omega * m_omega)) -
+             (4 * Math.PI * g_sigma2 / (q * q + m_sigma * m_sigma));
+      break;
+    }
     default:
       v_nn = -300.0;
       break;

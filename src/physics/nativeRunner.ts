@@ -120,7 +120,7 @@ A40Pa A25Pa AdelPa CElPa a40Pa a25Pa
 11061.63 -2537.5 -262.0 0.005 4.0 2.5
 Migdal force parameters (Mig_fex Mig_fexprime Mig_fin Mig_finprime Mig_C_MF)
 Migdal header line 2
-1.0 1.0 1.0 1.0 378.0
+1.0 1.0 1.0 1.0 -378.0
 RMF parameters
 RMF header line 2
 0 783.0 763.0 492.25 11.666 4.961 10.138 -12.172 -36.265 0.0 -276.0

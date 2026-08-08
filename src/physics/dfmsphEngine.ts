@@ -93,7 +93,7 @@ export function computeNNFT(nnType: string, q: number, E_per_A: number, key_ex: 
     case 'm3y_paris': {
       const mu1 = 4.0, v1 = 11061.63 / 4.0;
       const mu2 = 2.5, v2 = -2537.5 / 2.5;
-      const J_ex = exFactor * (-262.0 * (1.0 - 0.005 * E_per_A));
+      const J_ex = exFactor * (-592.0 * (1.0 - 0.005 * E_per_A));
       v_nn = (4 * Math.PI * v1 / (q * q + mu1 * mu1)) +
              (4 * Math.PI * v2 / (q * q + mu2 * mu2)) + J_ex;
       break;

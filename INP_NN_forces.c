@@ -7,7 +7,7 @@ Paris NN force parameters (Aex1 Aex2 Aex3 aex1 aex2 aex3)
 Paris header line 2
 1517.8 -484.2 0.0 1.6 2.5 0.0
 A40Pa A25Pa AdelPa CElPa a40Pa a25Pa
-11061.63 -2537.5 -262.0 0.005 4.0 2.5
+11061.63 -2537.5 -592.0 0.005 4.0 2.5
 Migdal force parameters (Mig_fex Mig_fexprime Mig_fin Mig_finprime Mig_C_MF)
 Migdal header line 2
 1.0 1.0 1.0 1.0 378.0
